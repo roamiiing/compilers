@@ -26,7 +26,22 @@ const reset = () => {
 
   const getAll = () => {
     console.warn(tracer.current);
-    return tracer.current.toRpn();
+    const rpn = tracer.current.toRpn();
+    const asm = tracer.current.toAsm();
+
+    // copy asm to clipboard
+    const callback = (e: ClipboardEvent) => {
+      e.clipboardData.setData("text/plain", asm);
+      e.preventDefault();
+    };
+    document.addEventListener("copy", callback);
+    document.execCommand("copy");
+    document.removeEventListener("copy", callback);
+
+    return `
+      ASM:\n${asm}
+      RPN:\n${rpn}
+    `;
   };
 
   const pushGlobal = () => tracer.push(new Global());
@@ -41,11 +56,15 @@ const reset = () => {
       return;
     }
 
-    expression.addToken(new Const({ value }));
+    if (value.startsWith("_")) {
+      expression.addToken(new Id({ name: value }));
+    } else {
+      expression.addToken(new Const({ value }));
+    }
   };
   const pushExpression = () => {
-    const isAlreadyParsingExpression =
-      tracer.findLast((entity) => entity instanceof Expression) !== undefined;
+    const isAlreadyParsingExpression = tracer.peek() instanceof Expression;
+    // tracer.findLast((entity) => entity instanceof Expression) !== undefined;
 
     if (isAlreadyParsingExpression) {
       return;

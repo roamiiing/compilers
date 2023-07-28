@@ -1,0 +1,25 @@
+_main_ () begin
+    let _result_ on "";
+
+    exec begin
+        let _result_ on _result_ + _getFizzOrBuzz_(_i_);
+    end with _i_ from 1 to 27 + 1
+
+    return _result_;
+end
+
+_getFizzOrBuzz_ (_i_) begin
+    when (_i_ % 15 == 0) begin
+        return "FizzBuzz";
+    end
+
+    when (_i_ % 3 == 0) begin
+        return "Fizz";
+    end
+    
+    when (_i_ % 5 == 0) begin
+        return "Buzz";
+    end
+    
+    return _i_;
+end

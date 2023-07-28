@@ -1,3 +1,4 @@
+import { AsmInstruction } from "../asm/instructions";
 import { Command } from "../command";
 import { LangEntity } from "./base";
 import { Block } from "./block";
@@ -50,6 +51,55 @@ export class Loop extends LangEntity<LoopParams> {
       "\n",
       this.getLabel("Exit"),
       Command.StepOut,
+    ].join(" ");
+  }
+
+  toAsm(): string {
+    return [
+      `\n// For loop\n`,
+      "\n",
+      this.params.from.toAsm(),
+      "\n",
+      AsmInstruction.Mov,
+      this.params.increment,
+      AsmInstruction.Pop,
+      "\n",
+      AsmInstruction.Label,
+      this.getLabel("Condition"),
+      "\n",
+      AsmInstruction.Mov,
+      AsmInstruction.Push,
+      this.params.increment,
+      "\n",
+      this.params.to.toAsm(),
+      "\n",
+      AsmInstruction.Less,
+      AsmInstruction.Pop,
+      this.params.increment,
+      AsmInstruction.Push,
+      "\n",
+      AsmInstruction.JmpFalse,
+      this.getLabel("Exit"),
+      AsmInstruction.Pop,
+      "\n",
+      `\n// For loop body\n`,
+      this.params.body.toAsm(),
+      "\n",
+      `\n// For loop increment\n`,
+      this.params.step?.toAsm() ??
+        `${AsmInstruction.Mov} ${AsmInstruction.Push} 1`,
+      "\n",
+      AsmInstruction.Add,
+      this.params.increment,
+      AsmInstruction.Pop,
+      this.params.increment,
+      "\n",
+      AsmInstruction.Jmp,
+      this.getLabel("Condition"),
+      "\n",
+      AsmInstruction.Label,
+      this.getLabel("Exit"),
+      `\n// End for loop\n`,
     ].join(" ");
   }
 }

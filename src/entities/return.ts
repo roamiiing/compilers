@@ -1,3 +1,4 @@
+import { AsmInstruction } from "../asm/instructions";
 import { LangEntity } from "./base";
 import { Expression } from "./expression";
 
@@ -14,5 +15,15 @@ export class Return extends LangEntity<ReturnParams> {
 
   toRpn() {
     return `// return ${this.params.value.toRpn()}`;
+  }
+
+  toAsm() {
+    return [
+      "\n// return \n",
+      this.params.value.toAsm(),
+      "\n",
+      // по идее, указатель на возвращаемое значение уже лежит на стеке
+      AsmInstruction.Out,
+    ].join(" ");
   }
 }

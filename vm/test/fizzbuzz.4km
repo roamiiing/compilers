@@ -1,0 +1,111 @@
+// function _main_ ()
+ lbl $$Function__main_$$ 
+ 
+ 
+ mov push "" 
+ mov _result_ pop 
+
+
+// For loop
+ 
+ mov push 1 
+ mov _i_ pop 
+ lbl $$Condition_Loop_1320$$ 
+ mov push _i_ 
+ mov push 27
+mov push 1
++ pop pop push 
+ < pop _i_ push 
+ jf $$Exit_Loop_1320$$ pop 
+ 
+// For loop body
+ 
+ mov push _result_
+// Call _getFizzOrBuzz_ with 1 args
+ mov push _i_ 
+ call $$Function__getFizzOrBuzz_$$ 
+
++ pop pop push 
+ mov _result_ pop 
+ 
+ 
+// For loop increment
+ mov push 1 
+ + _i_ pop _i_ 
+ jmp $$Condition_Loop_1320$$ 
+ lbl $$Exit_Loop_1320$$ 
+// End for loop
+
+
+// return 
+ mov push _result_ 
+ out 
+// end function _main_
+
+// function _getFizzOrBuzz_ (_i_)
+ lbl $$Function__getFizzOrBuzz_$$ 
+ mov _i_ pop 
+ 
+ 
+ // If condition
+ mov push _i_
+mov push 15
+% pop pop push
+mov push 0
+== pop pop push 
+ jf $$Else_Conditional_1344$$ pop 
+ // Then
+ 
+ 
+// return 
+ mov push "FizzBuzz" 
+ out 
+ jmp $$Exit_Conditional_1344$$ 
+ // Else
+ lbl $$Else_Conditional_1344$$ 
+  
+ lbl $$Exit_Conditional_1344$$ 
+
+// If condition
+ mov push _i_
+mov push 3
+% pop pop push
+mov push 0
+== pop pop push 
+ jf $$Else_Conditional_1356$$ pop 
+ // Then
+ 
+ 
+// return 
+ mov push "Fizz" 
+ out 
+ jmp $$Exit_Conditional_1356$$ 
+ // Else
+ lbl $$Else_Conditional_1356$$ 
+  
+ lbl $$Exit_Conditional_1356$$ 
+
+// If condition
+ mov push _i_
+mov push 5
+% pop pop push
+mov push 0
+== pop pop push 
+ jf $$Else_Conditional_1368$$ pop 
+ // Then
+ 
+ 
+// return 
+ mov push "Buzz" 
+ out 
+ jmp $$Exit_Conditional_1368$$ 
+ // Else
+ lbl $$Else_Conditional_1368$$ 
+  
+ lbl $$Exit_Conditional_1368$$ 
+
+
+// return 
+ mov push _i_ 
+ out 
+// end function _getFizzOrBuzz_

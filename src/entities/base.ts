@@ -8,7 +8,11 @@ export abstract class LangEntity<T = unknown> {
     LangEntity.counter++;
   }
 
-  static getLabel(label: string, type: string, id: number) {
+  static getLabel(label: string, type: string, id?: number) {
+    if (id === undefined) {
+      return `$$${label}_${type}$$`;
+    }
+
     return `$$${label}_${type}_${id}$$`;
   }
 
@@ -21,4 +25,6 @@ export abstract class LangEntity<T = unknown> {
   }
 
   abstract toRpn(): string;
+
+  abstract toAsm(): string;
 }

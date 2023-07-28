@@ -1,3 +1,4 @@
+import { AsmInstruction } from "../asm/instructions";
 import { Command } from "../command";
 import { LangEntity } from "./base";
 import { Expression } from "./expression";
@@ -17,6 +18,14 @@ export class SwitchBlock extends LangEntity<SwitchBlockParams> {
   toRpn() {
     return this.params.statements.map((s) => s.toRpn()).join("\n");
   }
+
+  toAsm(): string {
+    return [
+      "\n",
+      this.params.statements.map((s) => s.toAsm()).join("\n"),
+      "\n",
+    ].join(" ");
+  }
 }
 
 export type SwitchCaseParams = {
@@ -33,6 +42,11 @@ export class SwitchCase extends LangEntity<SwitchCaseParams> {
   }
 
   toRpn() {
+    // is handled by Switch itself
+    return "";
+  }
+
+  toAsm() {
     // is handled by Switch itself
     return "";
   }
@@ -80,5 +94,55 @@ export class Switch extends LangEntity<SwitchParams> {
     ]
       .flat()
       .join(" ");
+  }
+
+  toAsm() {
+    return [
+      `\n// Switch\n`,
+      ...this.params.cases.flatMap((c) => [
+        "\n// Case\n",
+        ...c.params.values.flatMap((v, i) => [
+          this.params.value.toAsm(),
+          "\n",
+          v.toAsm(),
+          "\n",
+
+          AsmInstruction.Eq,
+          AsmInstruction.Pop,
+          AsmInstruction.Pop,
+          AsmInstruction.Push,
+
+          "\n",
+        ]),
+        ...Array(c.params.values.length - 1)
+          .fill(
+            [
+              AsmInstruction.Or,
+              AsmInstruction.Pop,
+              AsmInstruction.Pop,
+              AsmInstruction.Push,
+            ].join(" ")
+          )
+          .map((s) => s + "\n"),
+
+        AsmInstruction.JmpFalse,
+        c.getLabel("Skip"),
+        AsmInstruction.Pop,
+        "\n",
+        c.params.body.toAsm() ?? "// No body",
+        "\n",
+        AsmInstruction.Jmp, // do not fall through ?
+        this.getLabel("Exit"),
+        "\n",
+        AsmInstruction.Label,
+        c.getLabel("Skip"),
+        "\n",
+      ]),
+      this.params.default?.toAsm() ?? "",
+      "\n",
+      AsmInstruction.Label,
+      this.getLabel("Exit"),
+      "\n",
+    ].join(" ");
   }
 }

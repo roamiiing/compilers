@@ -16,4 +16,8 @@ export class Id extends LangEntity<IdParams> {
   toRpn() {
     return this.params.name;
   }
+
+  toAsm() {
+    return `${this.params.name}`;
+  }
 }

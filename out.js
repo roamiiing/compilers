@@ -14,6 +14,9 @@ var _LangEntity = class {
   __type__ = this.constructor.name;
   id = _LangEntity.counter;
   static getLabel(label, type, id) {
+    if (id === void 0) {
+      return `$$${label}_${type}$$`;
+    }
     return `$$${label}_${type}_${id}$$`;
   }
   getLabel(label) {
@@ -37,6 +40,35 @@ var Call = class extends LangEntity {
   toRpn() {
     return `${this.params.args.map((arg) => arg.toRpn()).join(" ")} !Call_${this.params.name}!`;
   }
+  toAsmFunction() {
+    switch (this.params.name) {
+      case "_print_":
+        return [
+          "prn" /* Print */,
+          ...this.params.args.map(() => "pop" /* Pop */)
+        ];
+      case "_read_":
+        return [
+          "read" /* Read */,
+          ...this.params.args.map(() => "pop" /* Pop */)
+        ];
+      default:
+        return [
+          "call" /* Call */,
+          LangEntity.getLabel("Function", this.params.name)
+        ];
+    }
+  }
+  toAsm() {
+    return [
+      `// Call ${this.params.name} with ${this.params.args.length} args
+`,
+      this.params.args.map((arg) => arg.toAsm()).join("\n"),
+      "\n",
+      ...this.toAsmFunction(),
+      "\n"
+    ].join(" ");
+  }
 };
 
 // src/entities/const.ts
@@ -49,6 +81,31 @@ var Const2 = class extends LangEntity {
   toRpn() {
     return this.params.value;
   }
+  toAsm() {
+    console.log("Const.toAsm", this.params.value, this.params.value.length);
+    if (this.params.value.startsWith("'") || this.params.value.startsWith('"')) {
+      return this.params.value;
+    }
+    if (this.params.value === "true") {
+      return "1";
+    }
+    if (this.params.value === "false") {
+      return "0";
+    }
+    if (this.params.value.startsWith("0x")) {
+      return parseInt(
+        this.params.value.slice(2, this.params.value.length),
+        16
+      ).toString();
+    }
+    if (this.params.value.startsWith("0q")) {
+      return parseInt(
+        this.params.value.slice(2, this.params.value.length),
+        4
+      ).toString();
+    }
+    return parseFloat(this.params.value).toString(10);
+  }
 };
 
 // src/entities/id.ts
@@ -60,6 +117,9 @@ var Id2 = class extends LangEntity {
   }
   toRpn() {
     return this.params.name;
+  }
+  toAsm() {
+    return `${this.params.name}`;
   }
 };
 
@@ -81,6 +141,22 @@ var Operator = /* @__PURE__ */ ((Operator3) => {
   Operator3["NegateUnary"] = "!Negate!";
   return Operator3;
 })(Operator || {});
+var unaryOps = ["!Negate!" /* NegateUnary */, "!" /* Negate */];
+var operatorMap = {
+  ["+" /* Add */]: "+" /* Add */,
+  ["-" /* Subtract */]: "-" /* Sub */,
+  ["*" /* Multiply */]: "*" /* Mul */,
+  ["/" /* Divide */]: "/" /* Div */,
+  ["%" /* Modulo */]: "%" /* Mod */,
+  ["!" /* Negate */]: "!" /* Not */,
+  ["!Negate!" /* NegateUnary */]: "neg" /* Neg */,
+  ["==" /* Equal */]: "==" /* Eq */,
+  ["!=" /* NotEqual */]: "!=" /* Neq */,
+  [">" /* GreaterThan */]: ">" /* Greater */,
+  ["<" /* LessThan */]: "<" /* Less */,
+  [">=" /* GreaterThanOrEqual */]: ">=" /* GreaterEq */,
+  ["<=" /* LessThanOrEqual */]: "<=" /* LessEq */
+};
 var isOperator = (value) => {
   return typeof value === "string" && Object.values(Operator).includes(value);
 };
@@ -121,8 +197,7 @@ var Expression2 = class extends LangEntity {
     }
     this.params.tokens.push(token);
   }
-  // Shunting-yard algorithm
-  toRpn() {
+  toRpnInner() {
     const stack = [];
     const output = [];
     for (const token of this.params.tokens) {
@@ -148,7 +223,29 @@ var Expression2 = class extends LangEntity {
     while (stack.length > 0) {
       output.push(stack.pop());
     }
-    return output.map((token) => token.toRpn?.() ?? token.toString()).join(" ");
+    return output;
+  }
+  toRpn() {
+    return this.toRpnInner().map((token) => token.toRpn?.() ?? token.toString()).join(" ");
+  }
+  toAsm() {
+    return this.toRpnInner().map((v) => {
+      if (v instanceof Const2)
+        return `${"mov" /* Mov */} ${"push" /* Push */} ${v.toAsm()}`;
+      if (v instanceof Id2)
+        return `${"mov" /* Mov */} ${"push" /* Push */} ${v.params.name}`;
+      if (v instanceof Call)
+        return v.toAsm();
+      if (isOperator(v)) {
+        if (unaryOps.includes(v)) {
+          return [
+            `${operatorMap[v] ?? "UNKNOWN"} ${"pop" /* Pop */} ${"push" /* Push */}`
+          ].join("\n");
+        }
+        return `${operatorMap[v] ?? "UNKNOWN"} ${"pop" /* Pop */} ${"pop" /* Pop */} ${"push" /* Push */}`;
+      }
+      return "UNKNOWN";
+    }).join("\n");
   }
 };
 
@@ -163,6 +260,17 @@ var Assignment = class extends LangEntity {
   toRpn() {
     return `${this.params.name} ${this.params.value.toRpn()} =`;
   }
+  toAsm() {
+    console.log("Assignment.toAsm", this.params.name, this);
+    return [
+      this.params.value.toAsm(),
+      "\n",
+      "mov" /* Mov */,
+      this.params.name,
+      "pop" /* Pop */,
+      "\n"
+    ].join(" ");
+  }
 };
 
 // src/entities/switch.ts
@@ -175,6 +283,13 @@ var SwitchBlock = class extends LangEntity {
   toRpn() {
     return this.params.statements.map((s) => s.toRpn()).join("\n");
   }
+  toAsm() {
+    return [
+      "\n",
+      this.params.statements.map((s) => s.toAsm()).join("\n"),
+      "\n"
+    ].join(" ");
+  }
 };
 var SwitchCase = class extends LangEntity {
   constructor() {
@@ -184,6 +299,9 @@ var SwitchCase = class extends LangEntity {
     });
   }
   toRpn() {
+    return "";
+  }
+  toAsm() {
     return "";
   }
 };
@@ -218,6 +336,53 @@ var Switch = class extends LangEntity {
       "stepOut" /* StepOut */
     ].flat().join(" ");
   }
+  toAsm() {
+    return [
+      `
+// Switch
+`,
+      ...this.params.cases.flatMap((c) => [
+        "\n// Case\n",
+        ...c.params.values.flatMap((v, i) => [
+          this.params.value.toAsm(),
+          "\n",
+          v.toAsm(),
+          "\n",
+          "==" /* Eq */,
+          "pop" /* Pop */,
+          "pop" /* Pop */,
+          "push" /* Push */,
+          "\n"
+        ]),
+        ...Array(c.params.values.length - 1).fill(
+          [
+            "|" /* Or */,
+            "pop" /* Pop */,
+            "pop" /* Pop */,
+            "push" /* Push */
+          ].join(" ")
+        ).map((s) => s + "\n"),
+        "jf" /* JmpFalse */,
+        c.getLabel("Skip"),
+        "pop" /* Pop */,
+        "\n",
+        c.params.body.toAsm() ?? "// No body",
+        "\n",
+        "jmp" /* Jmp */,
+        // do not fall through ?
+        this.getLabel("Exit"),
+        "\n",
+        "lbl" /* Label */,
+        c.getLabel("Skip"),
+        "\n"
+      ]),
+      this.params.default?.toAsm() ?? "",
+      "\n",
+      "lbl" /* Label */,
+      this.getLabel("Exit"),
+      "\n"
+    ].join(" ");
+  }
 };
 
 // src/entities/break.ts
@@ -233,6 +398,12 @@ var Break = class extends LangEntity {
       "jump" /* Jump */
     ].join(" ");
   }
+  toAsm() {
+    return [
+      "jmp" /* Jmp */,
+      LangEntity.getLabel("Exit", Switch.name, this.params.entityId)
+    ].join(" ");
+  }
 };
 
 // src/entities/block.ts
@@ -244,6 +415,17 @@ var Block = class extends LangEntity {
   }
   toRpn() {
     return this.params.statements.map((s) => s.toRpn()).join("\n");
+  }
+  toAsm() {
+    return [
+      // AsmInstruction.In,
+      // this.getLabel("Scope"),
+      "\n",
+      this.params.statements.map((s) => s.toAsm()).join("\n")
+      // "\n",
+      // AsmInstruction.Out,
+      // this.getLabel("Scope"),
+    ].join(" ");
   }
 };
 
@@ -271,6 +453,35 @@ var Conditional = class extends LangEntity {
       this.params.elseBody?.toRpn() ?? "",
       "\n",
       this.getLabel("Exit")
+    ].join(" ");
+  }
+  toAsm() {
+    return [
+      `// If condition
+`,
+      this.params.condition.toAsm(),
+      "\n",
+      "jf" /* JmpFalse */,
+      this.getLabel("Else"),
+      "pop" /* Pop */,
+      "\n",
+      `// Then
+`,
+      this.params.body.toAsm(),
+      "\n",
+      "jmp" /* Jmp */,
+      this.getLabel("Exit"),
+      "\n",
+      `// Else
+`,
+      "lbl" /* Label */,
+      this.getLabel("Else"),
+      "\n",
+      this.params.elseBody?.toAsm() ?? "",
+      "\n",
+      "lbl" /* Label */,
+      this.getLabel("Exit"),
+      "\n"
     ].join(" ");
   }
 };
@@ -316,6 +527,61 @@ var Loop = class extends LangEntity {
       "stepOut" /* StepOut */
     ].join(" ");
   }
+  toAsm() {
+    return [
+      `
+// For loop
+`,
+      "\n",
+      this.params.from.toAsm(),
+      "\n",
+      "mov" /* Mov */,
+      this.params.increment,
+      "pop" /* Pop */,
+      "\n",
+      "lbl" /* Label */,
+      this.getLabel("Condition"),
+      "\n",
+      "mov" /* Mov */,
+      "push" /* Push */,
+      this.params.increment,
+      "\n",
+      this.params.to.toAsm(),
+      "\n",
+      "<" /* Less */,
+      "pop" /* Pop */,
+      this.params.increment,
+      "push" /* Push */,
+      "\n",
+      "jf" /* JmpFalse */,
+      this.getLabel("Exit"),
+      "pop" /* Pop */,
+      "\n",
+      `
+// For loop body
+`,
+      this.params.body.toAsm(),
+      "\n",
+      `
+// For loop increment
+`,
+      this.params.step?.toAsm() ?? `${"mov" /* Mov */} ${"push" /* Push */} 1`,
+      "\n",
+      "+" /* Add */,
+      this.params.increment,
+      "pop" /* Pop */,
+      this.params.increment,
+      "\n",
+      "jmp" /* Jmp */,
+      this.getLabel("Condition"),
+      "\n",
+      "lbl" /* Label */,
+      this.getLabel("Exit"),
+      `
+// End for loop
+`
+    ].join(" ");
+  }
 };
 
 // src/entities/exit.ts
@@ -331,6 +597,12 @@ var Exit = class extends LangEntity {
       "jump" /* Jump */
     ].join(" ");
   }
+  toAsm() {
+    return [
+      "jmp" /* Jmp */,
+      LangEntity.getLabel("Exit", Loop.name, this.params.entityId)
+    ].join(" ");
+  }
 };
 
 // src/entities/return.ts
@@ -342,6 +614,15 @@ var Return = class extends LangEntity {
   }
   toRpn() {
     return `// return ${this.params.value.toRpn()}`;
+  }
+  toAsm() {
+    return [
+      "\n// return \n",
+      this.params.value.toAsm(),
+      "\n",
+      // по идее, указатель на возвращаемое значение уже лежит на стеке
+      "out" /* Out */
+    ].join(" ");
   }
 };
 
@@ -363,6 +644,21 @@ ${this.params.body.toRpn()}
 
 `;
   }
+  toAsm() {
+    return [
+      `// function ${this.params.name} (${this.params.args.join(", ")})
+`,
+      "lbl" /* Label */,
+      LangEntity.getLabel("Function", this.params.name),
+      "\n",
+      ...[...this.params.args].reverse().flatMap((arg) => ["mov" /* Mov */, arg, "pop" /* Pop */, "\n"]),
+      "\n",
+      this.params.body.toAsm(),
+      `
+// end function ${this.params.name}
+`
+    ].join(" ");
+  }
 };
 
 // src/entities/global.ts
@@ -374,6 +670,9 @@ var Global = class extends LangEntity {
   }
   toRpn() {
     return this.params.functions.map((f) => f.toRpn()).join("\n");
+  }
+  toAsm() {
+    return this.params.functions.map((f) => f.toAsm()).join("\n");
   }
 };
 
@@ -449,7 +748,21 @@ var reset = () => {
   const debug = console.log;
   const getAll = () => {
     console.warn(tracer.current);
-    return tracer.current.toRpn();
+    const rpn = tracer.current.toRpn();
+    const asm = tracer.current.toAsm();
+    const callback = (e) => {
+      e.clipboardData.setData("text/plain", asm);
+      e.preventDefault();
+    };
+    document.addEventListener("copy", callback);
+    document.execCommand("copy");
+    document.removeEventListener("copy", callback);
+    return `
+      ASM:
+${asm}
+      RPN:
+${rpn}
+    `;
   };
   const pushGlobal = () => tracer.push(new Global());
   const pushAssignment = () => tracer.push(new Assignment());
@@ -461,10 +774,14 @@ var reset = () => {
       console.error("No expression found while pushing", value);
       return;
     }
-    expression.addToken(new Const2({ value }));
+    if (value.startsWith("_")) {
+      expression.addToken(new Id2({ name: value }));
+    } else {
+      expression.addToken(new Const2({ value }));
+    }
   };
   const pushExpression = () => {
-    const isAlreadyParsingExpression = tracer.findLast((entity) => entity instanceof Expression2) !== void 0;
+    const isAlreadyParsingExpression = tracer.peek() instanceof Expression2;
     if (isAlreadyParsingExpression) {
       return;
     }

@@ -2,6 +2,7 @@ import { Call } from "./call";
 import { LangEntity } from "./base";
 import { Const } from "./const";
 import { Id } from "./id";
+import { AsmInstruction } from "../asm/instructions";
 
 export enum Operator {
   // Comparison
@@ -24,6 +25,24 @@ export enum Operator {
   // Unary
   NegateUnary = "!Negate!",
 }
+
+const unaryOps = [Operator.NegateUnary, Operator.Negate] as Operator[];
+
+const operatorMap = {
+  [Operator.Add]: AsmInstruction.Add,
+  [Operator.Subtract]: AsmInstruction.Sub,
+  [Operator.Multiply]: AsmInstruction.Mul,
+  [Operator.Divide]: AsmInstruction.Div,
+  [Operator.Modulo]: AsmInstruction.Mod,
+  [Operator.Negate]: AsmInstruction.Not,
+  [Operator.NegateUnary]: AsmInstruction.Neg,
+  [Operator.Equal]: AsmInstruction.Eq,
+  [Operator.NotEqual]: AsmInstruction.Neq,
+  [Operator.GreaterThan]: AsmInstruction.Greater,
+  [Operator.LessThan]: AsmInstruction.Less,
+  [Operator.GreaterThanOrEqual]: AsmInstruction.GreaterEq,
+  [Operator.LessThanOrEqual]: AsmInstruction.LessEq,
+};
 
 const isOperator = (value: Token): value is Operator => {
   return (
@@ -88,7 +107,7 @@ export class Expression extends LangEntity<ExpressionParams> {
     this.params.tokens.push(token);
   }
 
-  toRpn() {
+  toRpnInner() {
     const stack: Token[] = [];
     const output: Token[] = [];
 
@@ -124,8 +143,42 @@ export class Expression extends LangEntity<ExpressionParams> {
       output.push(stack.pop() as Operator);
     }
 
-    return output
+    return output;
+  }
+
+  toRpn(): string {
+    return this.toRpnInner()
       .map((token) => (token as LangEntity).toRpn?.() ?? token.toString())
       .join(" ");
+  }
+
+  toAsm(): string {
+    return this.toRpnInner()
+      .map((v) => {
+        if (v instanceof Const)
+          return `${AsmInstruction.Mov} ${AsmInstruction.Push} ${v.toAsm()}`;
+
+        if (v instanceof Id)
+          return `${AsmInstruction.Mov} ${AsmInstruction.Push} ${v.params.name}`;
+
+        if (v instanceof Call) return v.toAsm();
+
+        if (isOperator(v)) {
+          if (unaryOps.includes(v)) {
+            return [
+              `${operatorMap[v] ?? "UNKNOWN"} ${AsmInstruction.Pop} ${
+                AsmInstruction.Push
+              }`,
+            ].join("\n");
+          }
+
+          return `${operatorMap[v] ?? "UNKNOWN"} ${AsmInstruction.Pop} ${
+            AsmInstruction.Pop
+          } ${AsmInstruction.Push}`;
+        }
+
+        return "UNKNOWN";
+      })
+      .join("\n");
   }
 }

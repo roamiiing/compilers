@@ -1,0 +1,221 @@
+// function _sum_ (_a_, _b_)
+ lbl $$Function__sum_$$ 
+ mov _b_ pop 
+ mov _a_ pop 
+ 
+ 
+ mov push _a_
+mov push _b_
++ pop pop push 
+ mov _ab_ pop 
+
+
+// return 
+ mov push _ab_ 
+ out 
+// end function _sum_
+
+// function _isSuccess_ (_string_)
+ lbl $$Function__isSuccess_$$ 
+ mov _string_ pop 
+ 
+ 
+ mov push 0 
+ mov _success_ pop 
+
+
+// Switch
+ 
+// Case
+ mov push _string_ 
+ mov push "success" 
+ == pop pop push 
+ mov push _string_ 
+ mov push "okay" 
+ == pop pop push 
+ mov push _string_ 
+ mov push "nice" 
+ == pop pop push 
+ | pop pop push
+ | pop pop push
+ jf $$Skip_SwitchCase_27$$ pop 
+ 
+ mov push 1 
+ mov _success_ pop 
+
+jmp $$Exit_Switch_21$$ 
+ 
+ jmp $$Exit_Switch_21$$ 
+ lbl $$Skip_SwitchCase_27$$ 
+ 
+// Case
+ mov push _string_ 
+ mov push "failure" 
+ == pop pop push 
+ mov push _string_ 
+ mov push "no" 
+ == pop pop push 
+ | pop pop push
+ jf $$Skip_SwitchCase_41$$ pop 
+ 
+ mov push 0 
+ mov _success_ pop 
+
+jmp $$Exit_Switch_21$$ 
+ 
+ jmp $$Exit_Switch_21$$ 
+ lbl $$Skip_SwitchCase_41$$ 
+ 
+ mov push 0 
+ mov _success_ pop 
+ 
+ 
+ lbl $$Exit_Switch_21$$ 
+
+
+// return 
+ mov push _success_ 
+ out 
+// end function _isSuccess_
+
+// function _isEven_ (_num_)
+ lbl $$Function__isEven_$$ 
+ mov _num_ pop 
+ 
+ 
+ mov push 0 
+ mov _even_ pop 
+
+// If condition
+ mov push _even_
+mov push 2
+% pop pop push
+mov push 0
+== pop pop push 
+ jf $$Else_Conditional_69$$ pop 
+ // Then
+ 
+ mov push 1 
+ mov _even_ pop 
+ 
+ jmp $$Exit_Conditional_69$$ 
+ // Else
+ lbl $$Else_Conditional_69$$ 
+  
+ lbl $$Exit_Conditional_69$$ 
+
+
+// return 
+ mov push _even_ 
+ out 
+// end function _isEven_
+
+// function _progressionSum_ (_upTo_)
+ lbl $$Function__progressionSum_$$ 
+ mov _upTo_ pop 
+ 
+ 
+ mov push 0 
+ mov _sum_ pop 
+
+
+// For loop
+ 
+ mov push 0 
+ mov _i_ pop 
+ lbl $$Condition_Loop_93$$ 
+ mov push _i_ 
+ mov push _upTo_ 
+ < pop _i_ push 
+ jf $$Exit_Loop_93$$ pop 
+ 
+// For loop body
+ 
+ mov push _sum_
+mov push _i_
++ pop pop push 
+ mov _sum_ pop 
+ 
+ 
+// For loop increment
+ mov push 1 
+ + _i_ pop _i_ 
+ jmp $$Condition_Loop_93$$ 
+ lbl $$Exit_Loop_93$$ 
+// End for loop
+
+
+// return 
+ mov push _sum_ 
+ out 
+// end function _progressionSum_
+
+// function _main_ ()
+ lbl $$Function__main_$$ 
+ 
+ 
+ mov push 6 
+ mov _quadro_ pop 
+
+mov push 171 
+ mov _hex_ pop 
+
+// Call _sum_ with 2 args
+ mov push _quadro_
+mov push _hex_ 
+ call $$Function__sum_$$ 
+
+mov push 3
++ pop pop push
+mov push 2
+mov push 7
+mov push 34
+% pop pop push
+* pop pop push
+- pop pop push 
+ mov _sum_ pop 
+
+// Call _isSuccess_ with 1 args
+ mov push "success" 
+ call $$Function__isSuccess_$$ 
+ 
+ mov _success_ pop 
+
+// Call _isSuccess_ with 1 args
+ mov push "no" 
+ call $$Function__isSuccess_$$ 
+ 
+ mov _failure_ pop 
+
+// Call _isEven_ with 1 args
+ mov push _sum_ 
+ call $$Function__isEven_$$ 
+ 
+ mov _even_ pop 
+
+// If condition
+ mov push _failure_
+! pop push 
+ jf $$Else_Conditional_155$$ pop 
+ // Then
+ 
+ mov push 1 
+ mov _failure_ pop 
+ 
+ jmp $$Exit_Conditional_155$$ 
+ // Else
+ lbl $$Else_Conditional_155$$ 
+  
+ lbl $$Exit_Conditional_155$$ 
+
+
+// return 
+ mov push _sum_
+mov push _even_
++ pop pop push
+mov push _success_
++ pop pop push
+mov push _failure_
++ pop pop push 
+ out 
+// end function _main_

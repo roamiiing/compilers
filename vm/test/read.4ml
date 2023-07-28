@@ -1,0 +1,14 @@
+_main_ () begin
+
+    _print_("Enter X");
+    let _x_ on _read_();
+    _print_("Enter Y");
+    let _y_ on _read_();
+
+    let _xy_ on _x_ + _y_;
+
+    _print_("Sum of X + Y");
+    _print_(_xy_);
+
+    return _xy_;
+end

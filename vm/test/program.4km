@@ -1,0 +1,144 @@
+// function _main_ ()
+lbl $$Function__main_$$ 
+ 
+ 
+mov push 17 
+mov _t0pShelf_ pop 
+
+// Call _snum_ with 2 args
+ mov push _t0pShelf_
+mov push 0 
+ call $$Function__snum_$$ 
+ 
+ mov _r3sult_ pop 
+
+
+// return 
+mov push _r3sult_ 
+out 
+// end function _main_
+
+// function _snum_ (_t0p_, _s74rt_)
+lbl $$Function__snum_$$ 
+mov _s74rt_ pop 
+mov _t0p_ pop 
+ 
+ 
+// If condition
+mov push _t0p_
+mov push _s74rt_
+== pop pop push 
+jf $$Else_Conditional_61$$ pop 
+ // Then
+ 
+ 
+// return 
+ mov push _t0p_ 
+ out 
+ jmp $$Exit_Conditional_61$$ 
+ // Else
+ lbl $$Else_Conditional_61$$ 
+  
+ lbl $$Exit_Conditional_61$$ 
+
+mov push 0 
+ mov _c0unt_ pop 
+
+mov push "aboba" 
+ mov _t7pe_ pop 
+
+// If condition
+ mov push _t0p_
+mov push 2
+% pop pop push
+mov push 0
+== pop pop push 
+ jf $$Else_Conditional_80$$ pop 
+ // Then
+ 
+ mov push "even" 
+ mov _t7pe_ pop 
+ 
+ jmp $$Exit_Conditional_80$$ 
+ // Else
+ lbl $$Else_Conditional_80$$ 
+ 
+ mov push "odd" 
+ mov _t7pe_ pop 
+ 
+ lbl $$Exit_Conditional_80$$ 
+
+// Call _print_ with 1 args
+ mov push _t7pe_ 
+ prn pop 
+
+// If condition
+ mov push _t0p_
+mov push _s74rt_
+> pop pop push 
+ jf $$Else_Conditional_101$$ pop 
+ // Then
+ 
+ 
+// For loop
+ 
+ mov push _s74rt_ 
+ mov _i1er_ pop 
+ lbl $$Condition_Loop_109$$ 
+ mov push _i1er_ 
+ mov push _t0p_ 
+ < pop _i1er_ push 
+ jf $$Exit_Loop_109$$ pop 
+ 
+// For loop body
+ 
+ mov push _c0unt_
+mov push _i1er_
++ pop pop push 
+ mov _c0unt_ pop 
+ 
+ 
+// For loop increment
+ mov push 1 
+ + _i1er_ pop _i1er_ 
+ jmp $$Condition_Loop_109$$ 
+ lbl $$Exit_Loop_109$$ 
+// End for loop
+ 
+ jmp $$Exit_Conditional_101$$ 
+ // Else
+ lbl $$Else_Conditional_101$$ 
+ 
+ 
+// For loop
+ 
+ mov push _t0p_ 
+ mov _i1er_ pop 
+ lbl $$Condition_Loop_124$$ 
+ mov push _i1er_ 
+ mov push _s74rt_ 
+ < pop _i1er_ push 
+ jf $$Exit_Loop_124$$ pop 
+ 
+// For loop body
+ 
+ mov push _c0unt_
+mov push _i1er_
++ pop pop push 
+ mov _c0unt_ pop 
+ 
+ 
+// For loop increment
+ mov push 1 
+ + _i1er_ pop _i1er_ 
+ jmp $$Condition_Loop_124$$ 
+ lbl $$Exit_Loop_124$$ 
+// End for loop
+ 
+ lbl $$Exit_Conditional_101$$ 
+
+
+// return 
+ mov push _c0unt_ 
+ out 
+// end function _snum_

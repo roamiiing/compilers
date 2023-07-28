@@ -1,0 +1,54 @@
+// function _main_ ()
+ lbl $$Function__main_$$ 
+ 
+ 
+ // Call _factorial_ with 1 args
+ mov push 90 
+ call $$Function__factorial_$$ 
+ 
+ mov _f_ pop 
+
+// Call _print_ with 1 args
+ mov push _f_ 
+ prn pop 
+
+
+// return 
+ mov push _f_ 
+ out 
+// end function _main_
+
+// function _factorial_ (_n_)
+ lbl $$Function__factorial_$$ 
+ mov _n_ pop 
+ 
+ 
+ // If condition
+ mov push _n_
+mov push 0
+== pop pop push 
+ jf $$Else_Conditional_675$$ pop 
+ // Then
+ 
+ 
+// return 
+ mov push 1 
+ out 
+ jmp $$Exit_Conditional_675$$ 
+ // Else
+ lbl $$Else_Conditional_675$$ 
+  
+ lbl $$Exit_Conditional_675$$ 
+
+
+// return 
+ mov push _n_
+// Call _factorial_ with 1 args
+ mov push _n_
+mov push 1
+- pop pop push 
+ call $$Function__factorial_$$ 
+
+* pop pop push 
+ out 
+// end function _factorial_

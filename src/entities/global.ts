@@ -15,4 +15,8 @@ export class Global extends LangEntity<GlobalParams> {
   toRpn() {
     return this.params.functions.map((f) => f.toRpn()).join("\n");
   }
+
+  toAsm() {
+    return this.params.functions.map((f) => f.toAsm()).join("\n");
+  }
 }

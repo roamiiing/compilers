@@ -1,0 +1,42 @@
+// function _main_ ()
+ lbl $$Function__main_$$ 
+ 
+ 
+ // Call _print_ with 1 args
+ mov push "Enter X" 
+ prn pop 
+
+// Call _read_ with 0 args
+  
+ read 
+ 
+ mov _x_ pop 
+
+// Call _print_ with 1 args
+ mov push "Enter Y" 
+ prn pop 
+
+// Call _read_ with 0 args
+  
+ read 
+ 
+ mov _y_ pop 
+
+mov push _x_
+mov push _y_
++ pop pop push 
+ mov _xy_ pop 
+
+// Call _print_ with 1 args
+ mov push "Sum of X + Y" 
+ prn pop 
+
+// Call _print_ with 1 args
+ mov push _xy_ 
+ prn pop 
+
+
+// return 
+ mov push _xy_ 
+ out 
+// end function _main_

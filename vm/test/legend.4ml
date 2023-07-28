@@ -1,0 +1,61 @@
+
+// this is a function
+_sum_ (_a_, _b_) begin
+	// this is a local variable
+	let _ab_ on _a_ + _b_;
+	return _ab_;
+end
+
+// this is a function also
+_isSuccess_ (_string_) begin
+	let _success_ on false;
+
+	select _string_
+	case ("success")
+	case ("okay")
+	case ("nice")
+		let _success_ on true;
+		break;
+	case ("failure")
+	case ("no")
+		let _success_ on false;
+		break;
+	case ()
+		let _success_ on false;
+	end
+
+	return _success_;
+end
+
+_isEven_ (_num_) begin
+	let _even_ on false;
+
+	when (_even_ % 2 == 0) begin
+		let _even_ on true;
+	end
+
+	return _even_;
+end
+
+// enough comments i think
+
+_progressionSum_ (_upTo_) begin
+	let _sum_ on 0;
+
+	exec begin
+		let _sum_ on _sum_ + _i_;
+	end with _i_ from 0 to _upTo_
+
+	return _sum_;
+end
+
+_main_ () begin
+	let _quadro_ on 0q12;
+	let _hex_    on 0xAB;
+	
+	let _sum_ on _sum_(_quadro_, _hex_) + 3 - 2 * 7 % 34;
+	
+	_print_(_sum_);
+
+    return _sum_;
+end

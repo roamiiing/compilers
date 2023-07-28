@@ -1,0 +1,58 @@
+// function _fib_ (_num_)
+ lbl $$Function__fib_$$ 
+ mov _num_ pop 
+ 
+ 
+ // If condition
+ mov push _num_
+mov push 2
+< pop pop push 
+ jf $$Else_Conditional_281$$ pop 
+ // Then
+ 
+ 
+// return 
+ mov push _num_ 
+ out 
+ jmp $$Exit_Conditional_281$$ 
+ // Else
+ lbl $$Else_Conditional_281$$ 
+  
+ lbl $$Exit_Conditional_281$$ 
+
+
+// return 
+ // Call _fib_ with 1 args
+ mov push _num_
+mov push 1
+- pop pop push 
+ call $$Function__fib_$$ 
+
+// Call _fib_ with 1 args
+ mov push _num_
+mov push 2
+- pop pop push 
+ call $$Function__fib_$$ 
+
++ pop pop push 
+ out 
+// end function _fib_
+
+// function _main_ ()
+ lbl $$Function__main_$$ 
+ 
+ 
+ mov push 20
+ mov _num_ pop 
+
+// Call _fib_ with 1 args
+ mov push _num_ 
+ call $$Function__fib_$$ 
+ 
+ mov _result_ pop 
+
+
+// return 
+ mov push _result_ 
+ out 
+// end function _main_

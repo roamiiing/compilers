@@ -1,0 +1,36 @@
+_main_() begin
+    let _t0pShelf_ on 17;
+    let _r3sult_ on _snum_(_t0pShelf_, 0);
+    return _r3sult_;
+end
+
+_snum_(_t0p_, _s74rt_) begin
+    when (_t0p_ == _s74rt_) begin
+       return _t0p_;
+    end
+
+    let _c0unt_ on 0;
+
+    let _t7pe_ on "aboba";
+
+    when (_t0p_ % 2 == 0) begin 
+      let _t7pe_ on "even";
+    end
+    other begin
+        let _t7pe_ on "odd";
+    end
+
+    _print_(_t7pe_);
+
+    when (_t0p_ > _s74rt_) begin
+        exec begin
+            let _c0unt_ on _c0unt_ + _i1er_;
+        end with _i1er_ from _s74rt_ to _t0p_
+    end other begin
+        exec begin
+            let _c0unt_ on _c0unt_ + _i1er_;
+        end with _i1er_ from _t0p_ to _s74rt_
+    end
+
+    return _c0unt_;
+end

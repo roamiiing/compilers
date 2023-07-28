@@ -1,0 +1,17 @@
+_fib_ (_num_) begin
+
+    when (_num_ < 2) begin
+        return _num_;
+    end
+
+    return _fib_(_num_ - 1) + _fib_(_num_ - 2);
+end
+
+_main_ () begin
+
+    let _num_ on 10;
+    let _result_ on _fib_(_num_);
+
+    return _result_;
+
+end
